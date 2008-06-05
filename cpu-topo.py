@@ -10,8 +10,10 @@
 
 import os, sys, re
 
-num_cpus  = 0
+# Number of physical cpus (distinct physical_id's)
+num_pcpus  = 0
 num_cores = 0
+num_threads = 0
 files     = []
 # Dictionary to hold cpu topology; cpu number, number of cores
 cpu_topo  = {}
@@ -19,6 +21,17 @@ cpu_topo  = {}
 ppid = -2
 # Previous core_id
 pcid = -2
+
+
+def print_summary():
+	global num_pcpus, num_cores
+
+	print
+	print "Number of CPUs    = ",num_pcpus
+	if num_cores == 1:
+		print "Number of threads =  2"
+	if num_cores > 1:
+		print "Number of cores   = ",num_cores
 
 
 # Check to see if we are UP or SMP
@@ -36,28 +49,51 @@ for f in os.listdir("/sys/devices/system/cpu"):
 
 files.sort()
 for file in files:
-	# get number of CPU's
+	# get number of physical CPU's
 	pfp = open("/sys/devices/system/cpu/"+file+"/topology/physical_package_id", 
 																			"r")
 	pid = pfp.read()
 	
 	if pid != ppid:
-		num_cpus += 1
+		num_pcpus += 1
 		ppid = pid
+		cpu_topo[pid] = 0
 	
-	if pid == ppid:
+	cfp = open("/sys/devices/system/cpu/"+file+"/topology/core_id", "r")
+	cid = cfp.read()
+
+	if cid != pcid:
 		num_cores += 1	
+		pcid = cid
 		try:
 			cpu_topo[pid] += 1
 		except:
 			cpu_topo[pid] = 1
 
 
-print "CPU Topology\n"
-for k, v in cpu_topo.iteritems():
-	print "CPU "+str(k) +"    Cores: "+ str(v)
+print "CPU Topology",
 
-print
-print "Number of CPUs  = ",num_cpus
-print "Number of cores = ",num_cores
+if num_cores < num_pcpus:
+	num_cores = 0
+	print "(SMP)\n"
+	for k, v in cpu_topo.iteritems():
+		print "CPU "+str(k),
 
+	print_summary()
+elif num_cores == num_pcpus:
+	print "(SMP / Hyperthreaded)\n"
+	for k, v in cpu_topo.iteritems():
+		print "CPU "+str(k) +"    Threads: 2"
+
+	print_summary()  
+else:
+	if num_pcpus > 1:
+		print "(SMP / Multicore)\n"
+	else:
+		print "(Multicore)\n"
+
+	for k, v in cpu_topo.iteritems():
+		print "CPU "+str(k) +"    Cores: "+ str(v)
+	
+	print_summary()
+	
