@@ -87,10 +87,7 @@ elif num_cores == num_pcpus:
 
 	print_summary()  
 else:
-	if num_pcpus > 1:
-		print "(SMP / Multicore)\n"
-	else:
-		print "(Multicore)\n"
+	print "(SMP / Multicore)\n"
 
 	for k, v in cpu_topo.iteritems():
 		print "CPU "+str(k) +"    Cores: "+ str(v)
