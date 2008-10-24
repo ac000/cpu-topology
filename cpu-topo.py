@@ -10,28 +10,29 @@
 
 import os, sys, re
 
-# Number of physical cpus (distinct physical_id's)
-num_pcpus  = 0
-num_cores = 0
-num_threads = 0
-files     = []
-# Dictionary to hold cpu topology; cpu number, number of cores
-cpu_topo  = {}
-# Previous physical_package_id
-ppid = -2
-# Previous core_id
-pcid = -2
+# Dictionary to hold physical cpus and number of cores
+cpus  = {}
 
+files = []
+# Core id
+cid   = 0;
+# Number of physical CPUs
+physical_cpus = 0
+# Number of logical CPUs, cores/threads or otherwise
+logical_cpus  = 0
 
-def print_summary():
-	global num_pcpus, num_cores
+def print_summary(type):
+	global physical_cpus, logical_cpus
 
-	print
-	print "Number of CPUs    = ",num_pcpus
-	if num_cores == 1:
-		print "Number of threads =  2"
-	if num_cores > 1:
-		print "Number of cores   = ",num_cores
+	print "\nNumber of CPUs    =  ",physical_cpus
+	if type == "SMP":
+		sys.exit()
+	if type == "HYP":
+		print "Number of threads =  ",logical_cpus
+		sys.exit()
+	if type == "SMPMUL":
+		print "Number of cores   =  ",logical_cpus
+		sys.exit()
 
 
 # Check to see if we are UP or SMP
@@ -47,53 +48,53 @@ for f in os.listdir("/sys/devices/system/cpu"):
 	if r.match(f):
 		files.append(f)
 
+logical_cpus = len(files)
+
 files.sort()
 for file in files:
-	# get number of physical CPU's
+	# Get the number of physical CPU's
 	pfp = open("/sys/devices/system/cpu/"+file+"/topology/physical_package_id", 
 																			"r")
+	# Physical Package ID
 	pid = pfp.read()
-	
-	if pid != ppid:
-		num_pcpus += 1
-		ppid = pid
-		cpu_topo[pid] = 0
-	
+	try:
+		cpus[pid] += 1
+	except:
+		cpus[pid] = 1
+
+
 	cfp = open("/sys/devices/system/cpu/"+file+"/topology/core_id", "r")
-	cid = cfp.read()
 
-	if cid != pcid:
-		num_cores += 1	
-		pcid = cid
-		try:
-			cpu_topo[pid] += 1
-		except:
-			cpu_topo[pid] = 1
+	# Core ID
+	pcid = cfp.read()
+	if pcid > cid:
+		cid = pcid
 
 
+physical_cpus = len(cpus)
+#print physical_cpus, logical_cpus, cid
 print "CPU Topology",
 
-if num_cores < num_pcpus:
-	num_cores = 0
+if physical_cpus == logical_cpus:
 	print "(SMP)\n"
-	for k, v in cpu_topo.iteritems():
+	for k, v in cpus.iteritems():
 		print "CPU "+str(k),
 
-	print_summary()
-elif num_cores == num_pcpus:
-	print "(SMP / Hyperthreaded)\n"
-	for k, v in cpu_topo.iteritems():
+	print_summary("SMP")
+elif int(cid) < physical_cpus:
+	print "(Hyperthreaded)\n"
+	for k, v in cpus.iteritems():
 		print "CPU "+str(k) +"    Threads: 2"
 
-	print_summary()
+	print_summary("HYP")
 else:
-	if num_pcpus == 1:
+	if physical_cpus == 1:
 		print "(Multicore)\n"
 	else:
 		print "(SMP / Multicore)\n"
 	
-	for k, v in cpu_topo.iteritems():
+	for k, v in cpus.iteritems():
 		print "CPU "+str(k) +"    Cores: "+ str(v)
 	
-	print_summary()
+	print_summary("SMPMUL")
 	
