@@ -26,13 +26,13 @@ def print_summary(type):
 
 	print "\nNumber of CPUs    =  ",physical_cpus
 	if type == "SMP":
-		sys.exit()
+		sys.exit(0)
 	if type == "HYP":
 		print "Number of threads =  ",logical_cpus
-		sys.exit()
+		sys.exit(0)
 	if type == "SMPMUL":
 		print "Number of cores   =  ",logical_cpus
-		sys.exit()
+		sys.exit(0)
 
 
 # Check to see if we are UP or SMP
@@ -81,10 +81,16 @@ if physical_cpus == logical_cpus:
 		print "CPU "+str(k),
 
 	print_summary("SMP")
-elif int(cid) < physical_cpus:
+elif int(cid) == 0:
 	print "(Hyperthreaded)\n"
 	for k, v in cpus.iteritems():
-		print "CPU "+str(k) +"    Threads: 2"
+		print "CPU "+str(k) +"    Threads: "+ str(v)
+
+	print_summary("HYP")
+elif int(cid) == 0 and physical_cpus > 1:
+	print "(SMP / Hyperthreaded)\n"
+	for k, v in cpus.iteritems():
+		print "CPU "+str(k) +"    Threads: "+ str(v)
 
 	print_summary("HYP")
 else:
