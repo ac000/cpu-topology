@@ -4,3 +4,60 @@ Overview
 cpu-topology.py is a simple python script that displays cpu topology 
 information gathered from /sys/devices/system/cpu/cpu*/topology.
 
+
+Examples
+========
+
+Single CPU
+----------
+
+System appears to be uni-processor
+
+
+Single hyperthreaded cpu
+------------------------
+
+CPU Topology (Hyperthreaded)
+
+CPU 0
+    Threads: 2
+
+Number of CPUs    =  1
+Number of threads =  2
+
+
+SMP
+---
+
+CPU Topology (SMP)
+
+CPU 0
+CPU 1
+
+Number of CPUs    =  2
+
+
+Multicore
+---------
+
+CPU Topology (Multicore)
+
+CPU 0
+    Cores: 4
+
+Number of CPUs    =  1
+Number of cores   =  4
+
+
+SMP + Multicore
+---------------
+
+CPU Topology (SMP / Multicore)
+
+CPU 0
+    Cores: 2
+CPU 1
+    Cores: 2
+
+Number of CPUs    =  2
+Number of cores   =  4
