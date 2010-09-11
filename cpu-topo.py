@@ -5,7 +5,7 @@
 #
 # Andrew Clayton <andrew@digital-domain.net>
 #
-# GPLv2
+# License: GNU GPLv2. See COPYING
 #
 
 import os, sys, re
