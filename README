@@ -1,0 +1,6 @@
+Overview
+========
+
+cpu-topology.py is a simple python script that displays cpu topology 
+information gathered from /sys/devices/system/cpu/cpu*/topology.
+
